@@ -1,11 +1,16 @@
-package nn.layer;
+package matrix;
 
-import java.awt.image.AreaAveragingScaleFilter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 行列クラス
+ * クラスメソッドで四足演算が可能
+ * 他にも行列積、転置も可能
+ * TODO inverseの実装。必要ないのでやらないが。。。
+ */
 public class Matrix {
-    private final double[][] value;
+    protected final double[][] value;
     public final int row;
     public final int col;
     private final String enter = System.lineSeparator();
@@ -50,6 +55,10 @@ public class Matrix {
         this.value = value;
     };
 
+    /**
+     * for shallow copy
+     * @return copied Matrix
+     */
     public Matrix copy(){
         Matrix matrixCopy = new Matrix(this.row, this.col);
         for(int row = 0; row < this.row; row++){
@@ -60,6 +69,11 @@ public class Matrix {
         return matrixCopy;
     }
 
+    /**
+     * 行に関してスライスを行う。pythonのスライスと異なり参照渡しではない。
+     * @param index スライスしたい行の行番号のリスト
+     * @return スライス後の行列
+     */
     public Matrix sliceRow(List<Integer> index){
         Matrix sliceMat = new Matrix(index.size(), value[0].length);
         int row = 0;
@@ -71,6 +85,11 @@ public class Matrix {
         return sliceMat;
     }
 
+    /**
+     * 行列を2次元ArrayListに変換。
+     * もっぱら行列をCSVHandlerで保存するときに使う。
+     * @return 2次元ArrayList
+     */
     public ArrayList<ArrayList<Double>> toList(){
         ArrayList<ArrayList<Double>> listMat = new ArrayList<ArrayList<Double>>();
         for(int row = 0; row < this.row; row++) {
@@ -87,7 +106,7 @@ public class Matrix {
      * 足し算
      * @param matA
      * @param matB
-     * @return
+     * @return 和の行列
      */
     public static Matrix add(Matrix matA, Matrix matB){
         if (matA.row != matB.row || matA.col != matB.col){
@@ -108,7 +127,7 @@ public class Matrix {
      * 引き算
      * @param matA
      * @param matB
-     * @return
+     * @return 引いた行列
      */
     public static Matrix subtract(Matrix matA, Matrix matB){
         return add(matA, dotH(matB, -1.));
@@ -118,7 +137,7 @@ public class Matrix {
      * 行列積
      * @param matA
      * @param matB
-     * @return
+     * @return 行列積
      */
     public static Matrix dot(Matrix matA, Matrix matB){
         if (matA.col != matB.row){
@@ -178,7 +197,6 @@ public class Matrix {
         return new Matrix(result);
     }
 
-
     // double用のキャスト機能
     public static Matrix add(Matrix matA, double b){
         return add(matA, new Matrix(matA.row, matA.col, b));
@@ -195,9 +213,7 @@ public class Matrix {
     public static Matrix dotH(Matrix matA, double b){
         return dotH(matA, new Matrix(matA.row, matA.col, b));
     }
-    public static Matrix dotH(double a, Matrix matB) {
-        return dotH(matB, a);
-    }
+    public static Matrix dotH(double a, Matrix matB) { return dotH(matB, a); }
     public static Matrix divide(Matrix matA, double b){
         return divide(matA, new Matrix(matA.row, matA.col, b));
     }
@@ -218,170 +234,6 @@ public class Matrix {
             }
         }
         return new Matrix(result);
-    }
-
-    public static Matrix sum(Matrix mat){
-        return sum(mat, 0);
-    }
-
-    public static Matrix sum(Matrix mat, int axis){
-        if(axis == 0) {
-            double[][] sumOfRow = new double[1][mat.col];
-            for (int row = 0; row < mat.row; row++) {
-                for (int col = 0; col < mat.col; col++) {
-                    sumOfRow[0][col] += mat.value[row][col];
-                }
-            }
-            return new Matrix(sumOfRow);
-        }
-        else{
-            double[][] sumOfCol = new double[mat.row][1];
-            for(int row = 0; row < mat.row; row++){
-                for(int col = 0; col < mat.col; col++){
-                    sumOfCol[row][0] += mat.value[row][col];
-                }
-            }
-            return new Matrix(sumOfCol);
-        }
-    }
-
-    public static Matrix extend(Matrix mat, int times){
-        if(mat.row == 1){
-            double[][] extendRow = new double[times][mat.col];
-            for(int row = 0; row < times; row++){
-                for(int col = 0; col < mat.col; col++){
-                    extendRow[row][col] = mat.value[0][col];
-                }
-            }
-            return new Matrix(extendRow);
-        }
-        else if(mat.col == 1){
-            double[][] extendCol = new double[mat.row][times];
-            for(int row = 0; row < mat.row; row++){
-                for(int col = 0; col < times; col++){
-                    extendCol[row][col] = mat.value[row][0];
-                }
-            }
-            return new Matrix(extendCol);
-        }
-        else{
-            // TODO 何かexceptionを投げたい
-            System.out.println("Cannot extend Matrix which row != 1 and col != 1");
-            return mat;
-        }
-    }
-
-    /**
-     * 要素毎に指数乗する
-     * @param mat
-     * @return
-     */
-    public static Matrix exp(Matrix mat){
-        double[][] expMat = new double[mat.row][mat.col];
-        for(int row = 0; row < mat.row; row++){
-            for(int col = 0; col < mat.col; col++){
-                expMat[row][col] = Math.exp(mat.value[row][col]);
-            }
-        }
-        return new Matrix(expMat);
-    }
-
-    public static Matrix log(Matrix mat){
-        double[][] expMat = new double[mat.row][mat.col];
-        for(int row = 0; row < mat.row; row++){
-            for(int col = 0; col < mat.col; col++){
-                expMat[row][col] = Math.log(mat.value[row][col]);
-            }
-        }
-        return new Matrix(expMat);
-    }
-    /**
-     * thresholdを超えたかどうかを判定し0 or 1の行列で返す。
-     * @param mat
-     * @param threshold
-     * @return
-     */
-    public static Matrix isOver(Matrix mat, double threshold){
-        double[][] result = new double[mat.row][mat.col];
-        for(int row = 0; row < mat.row; row++){
-            for(int col = 0; col < mat.col; col++){
-                result[row][col] = mat.value[row][col] > threshold ? 1 : 0;
-            }
-        }
-        return new Matrix(result);
-    }
-
-    public static Matrix makeOneHot(Matrix mat, int dimension){
-        Matrix oneHotMat = new Matrix(mat.row, dimension);
-        for(int i = 0; i < mat.row; i++){
-            oneHotMat.value[i][(int)mat.value[i][0]] = 1;
-        }
-        return oneHotMat;
-    }
-
-    public static Matrix softMax(Matrix mat, int axis){
-        if(axis == 0) {
-            Matrix expMat = exp(mat);
-            Matrix sumExpMat = sum(expMat, 0);
-            return divide(expMat, extend(sumExpMat, expMat.row));
-        }
-        else{
-            Matrix expMat = exp(mat);
-            Matrix sumExpMat = sum(expMat, 1);
-            return divide(expMat, extend(sumExpMat, expMat.col));
-        }
-    }
-
-    public static Matrix getMaxArg(Matrix mat, int axis){
-        if(axis == 0){
-            Matrix argMat = new Matrix(1, mat.col);
-            for(int col = 0; col < mat.col; col++){
-                double tempMax = 0;
-                int tempMaxArg = 0;
-                for(int row = 0; row < mat.row; row++){
-                    if(mat.value[row][col] > tempMax){
-                        tempMax = mat.value[row][col];
-                        tempMaxArg = row;
-                    }
-                }
-                argMat.value[0][col] = tempMaxArg;
-            }
-            return argMat;
-        }
-        else{
-            Matrix argMat = new Matrix(mat.row, 1);
-            for(int row = 0; row < mat.row; row++){
-                double tempMax = 0;
-                int tempMaxArg = 0;
-                for(int col = 0; col < mat.col; col++){
-                    if(mat.value[row][col] > tempMax){
-                        tempMax = mat.value[row][col];
-                        tempMaxArg = col;
-                    }
-                }
-                argMat.value[row][0] = tempMaxArg;
-            }
-            return argMat;
-        }
-    }
-
-    public static double checkAccuracy(Matrix matA, Matrix matB){
-        if(matA.row != matB.row || matA.col != matB.col)
-            return 0.;
-        int count = 0;
-        for(int row = 0; row < matA.row; row++){
-            for(int col = 0; col < matA.col; col++){
-                if(matA.value[row][col] == matB.value[row][col]){
-                    count += 1.;
-                }
-            }
-        }
-        return (double)count / (matA.row * matA.col);
-    }
-
-    public static double crossEntropyError(Matrix matA, Matrix matB){
-        Matrix crossEntropy = Matrix.dotH(-1., dotH(matA, log(matB)));
-        return Matrix.sum(Matrix.sum(crossEntropy, 0), 1).value[0][0];
     }
 
     @Override

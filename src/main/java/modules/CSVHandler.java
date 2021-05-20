@@ -10,8 +10,16 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * csv形式のファイル読み込み、書き込みを行う。
+ * ついでにDouble<->Stringのキャストも行う。
+ */
 public class CSVHandler {
-
+    /**
+     * csv読み込み
+     * @param path 読み込みファイルのパス
+     * @return 2次元ArrayList
+     */
     public static ArrayList<ArrayList<String>> loadCSV(String path) {
         ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
         try {
@@ -31,6 +39,11 @@ public class CSVHandler {
         return data;
     }
 
+    /**
+     * csv書き込み
+     * @param path 書き込みファイルのパス
+     * @param data 書き込む2次元ArrayList
+     */
     public static void exportCSV(String path, ArrayList<ArrayList<String>> data){
         try {
             FileWriter fw = new FileWriter(path, false);
@@ -48,6 +61,11 @@ public class CSVHandler {
         }
     }
 
+    /**
+     * String -> Doubleのキャスト
+     * @param tableString ArrayList<ArrayList<String>>
+     * @return ArrayList<ArrayList<Double>>
+     */
     public static ArrayList<ArrayList<Double>> toDouble(ArrayList<ArrayList<String>> tableString){
         ArrayList<ArrayList<Double>> tableDouble = new ArrayList<ArrayList<Double>>();
         for(int i = 0; i < tableString.size(); i++){
@@ -60,6 +78,11 @@ public class CSVHandler {
         return tableDouble;
     }
 
+    /**
+     * Double -> String のキャスト
+     * @param tableDouble ArrayList<ArrayList<Double>>
+     * @return ArrayList<ArrayList<String>>
+     */
     public static ArrayList<ArrayList<String>> toString(ArrayList<ArrayList<Double>> tableDouble){
         ArrayList<ArrayList<String>> tableString = new ArrayList<ArrayList<String>>();
         for(int i = 0; i < tableDouble.size(); i++){

@@ -23,7 +23,7 @@ public class Main {
         WineDataHandler wineDataHandler = new WineDataHandler("src/main/resources/data/winequality-red.csv");
 
         NeuralNetworkHandler neuralNetworkHandler = new NeuralNetworkHandler(neuralNetwork, wineDataHandler);
-        neuralNetworkHandler.train(100, 100, "src/main/resources/result/test1");
+        neuralNetworkHandler.train(100, 1000, "src/main/resources/result/test1");
         neuralNetworkHandler.exportNN("src/main/resources/result/test1");
     }
 }

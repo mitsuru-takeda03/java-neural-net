@@ -1,5 +1,6 @@
 package nn.network;
 
+import matrix.Matrix;
 import modules.CSVHandler;
 import nn.layer.*;
 
@@ -7,15 +8,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class NeuralNetworkHandler {
-    private final NeuralNetwork neuralNetwork;
-    private final WineDataHandler wineDataHandler;
+public class NeuralNetworkHandler implements NetworkHandler{
+    private final Network network;
+    private final DataHandler dataHandler;
     private ArrayList<ArrayList<Double>> log;
     private double learningRate;
 
-    public NeuralNetworkHandler(NeuralNetwork neuralNetwork, WineDataHandler wineDataHandler) {
-        this.neuralNetwork = neuralNetwork;
-        this.wineDataHandler = wineDataHandler;
+    /**
+     *
+     * @param network
+     * @param dataHandler
+     */
+    public NeuralNetworkHandler(Network network, DataHandler dataHandler) {
+        this.network = network;
+        this.dataHandler = dataHandler;
         log = new ArrayList<ArrayList<Double>>();
         learningRate = 0.1;
     }
@@ -26,21 +32,21 @@ public class NeuralNetworkHandler {
             if(configLine.get(0) == "nn.layer.Affine"){
                 Matrix matW = new Matrix(CSVHandler.toDouble(CSVHandler.loadCSV(configLine.get(1)+"_W.csv")));
                 Matrix matB = new Matrix(CSVHandler.toDouble(CSVHandler.loadCSV(configLine.get(1)+"_B.csv")));
-                neuralNetwork.addLayer(new Affine(matW, matB));
+                network.addLayer(new Affine(matW, matB));
             }
             else if(configLine.get(0) == "nn.layer.ReLu")
-                neuralNetwork.addLayer(new ReLu());
+                network.addLayer(new ReLu());
             else if(configLine.get(0) == "nn.layer.Sigmoid")
-                neuralNetwork.addLayer(new Sigmoid());
+                network.addLayer(new Sigmoid());
             else if(configLine.get(0) == "nn.layer.SoftmaxWithLoss")
-                neuralNetwork.addLayer(new SoftmaxWithLoss());
+                network.addLayer(new SoftmaxWithLoss());
         }
     }
 
     public void exportNN(String path){
         int numberOfAffine = 0;
         ArrayList<ArrayList<String>> configTable = new ArrayList<ArrayList<String>>();
-        for(Layer layer : neuralNetwork.layers){
+        for(Layer layer : network.getLayers()){
             ArrayList<String> configLine = new ArrayList<>();
             if(layer.getClass().getName() == "nn.layer.Affine"){
                 Affine affine = (Affine) layer;
@@ -64,10 +70,10 @@ public class NeuralNetworkHandler {
     }
 
     public void train(int batchSize, int epoch, String path){
-        for(int times = 0; times < epoch * wineDataHandler.size() / batchSize; times++){
-            Map<String, Matrix> batchData = wineDataHandler.getBatch(batchSize);
-            Map<String, Double> newLog = neuralNetwork.forward(batchData.get("X"), batchData.get("Y"));
-            neuralNetwork.backward(batchData.get("Y"), learningRate);
+        for(int times = 0; times < epoch * dataHandler.size() / batchSize; times++){
+            Map<String, Matrix> batchData = dataHandler.getBatch(batchSize);
+            Map<String, Double> newLog = network.forward(batchData.get("X"), batchData.get("Y"));
+            network.backward(batchData.get("Y"), learningRate);
             log.add(new ArrayList<Double>(List.of(newLog.get("Loss"), newLog.get("Accuracy"))));
         }
         CSVHandler.exportCSV(path + "Log.csv", CSVHandler.toString(log));

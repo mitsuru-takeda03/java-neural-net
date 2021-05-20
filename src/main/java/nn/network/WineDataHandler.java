@@ -1,11 +1,16 @@
 package nn.network;
 
+import matrix.Function;
 import modules.CSVHandler;
-import nn.layer.Matrix;
+import matrix.Matrix;
 
 import java.util.*;
 
-public class WineDataHandler {
+/**
+ * ワインのデータセット用のハンドラー
+ * ちょっと雑に書きすぎたかもしれない
+ */
+public class WineDataHandler implements DataHandler{
     private final Matrix dataX;
     private final Matrix dataY;
 
@@ -24,11 +29,11 @@ public class WineDataHandler {
             dataXString.add(lineX);
             dataYString.add(lineY);
         }
-        dataX = new Matrix(CSVHandler.toDouble(dataXString));
-        dataY = Matrix.makeOneHot(new Matrix(CSVHandler.toDouble(dataYString)), 10);
+        Matrix srcDataX = new Matrix(CSVHandler.toDouble(dataXString));
+        // 正規化
+        dataX = Matrix.divide(Matrix.subtract(srcDataX, Function.min(srcDataX)), Function.max(srcDataX) - Function.min(srcDataX));
+        dataY = Function.makeOneHot(new Matrix(CSVHandler.toDouble(dataYString)), 10);
     }
-
-    public int size() { return dataX.row; }
 
     public Map<String, Matrix> get(List<Integer> index) {
         Map<String, Matrix> partOfData = new HashMap<>();
@@ -48,4 +53,5 @@ public class WineDataHandler {
         }
         return get(selectedIndex);
     }
+    public int size() { return dataX.row; }
 }
