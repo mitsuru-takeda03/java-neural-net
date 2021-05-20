@@ -75,7 +75,7 @@ public class Matrix {
      * @return
      */
     public static Matrix subtract(Matrix matA, Matrix matB){
-        return add(matA, dot(matB, -1.));
+        return add(matA, dotH(matB, -1.));
     }
 
     /**
