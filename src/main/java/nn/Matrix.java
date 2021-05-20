@@ -247,8 +247,20 @@ public class Matrix {
         return new Matrix(expMat);
     }
 
+    public static Matrix log(Matrix mat){
+        double[][] expMat = new double[mat.row][mat.col];
+        for(int row = 0; row < mat.row; row++){
+            for(int col = 0; col < mat.col; col++){
+                expMat[row][col] = Math.log(mat.value[row][col]);
+            }
+        }
+        return new Matrix(expMat);
+    }
     /**
-     *
+     * thresholdを超えたかどうかを判定し0 or 1の行列で返す。
+     * @param mat
+     * @param threshold
+     * @return
      */
     public static Matrix isOver(Matrix mat, double threshold){
         double[][] result = new double[mat.row][mat.col];
@@ -259,4 +271,23 @@ public class Matrix {
         }
         return new Matrix(result);
     }
+
+    public static Matrix softMax(Matrix mat, int axis){
+        if(axis == 0) {
+            Matrix expMat = exp(mat);
+            Matrix sumExpMat = sum(expMat, 0);
+            return devide(expMat, extend(sumExpMat, expMat.row));
+        }
+        else{
+            Matrix expMat = exp(mat);
+            Matrix sumExpMat = sum(expMat, 1);
+            return devide(expMat, extend(sumExpMat, expMat.col));
+        }
+    }
+
+    public static double crossEntropyError(Matrix matA, Matrix matB){
+        Matrix crossEntropy = Matrix.dotH(-1., dotH(matA, log(matB)));
+        return Matrix.sum(Matrix.sum(crossEntropy, 0), 1).value[0][0];
+    }
+
 }
