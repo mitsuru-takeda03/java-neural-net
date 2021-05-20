@@ -9,7 +9,7 @@ import java.util.*;
 public class NeuralNetwork {
     protected List<Layer> layers;
 
-    NeuralNetwork() { layers = new ArrayList<>(); }
+    public NeuralNetwork() { layers = new ArrayList<>(); }
 
     public void addLayer(Layer newLayer) { layers.add(newLayer); }
 
@@ -33,5 +33,6 @@ public class NeuralNetwork {
         for(Layer layer : layers){
             input = layer.backward(input, learningRate);
         }
+        Collections.reverse(layers);
     }
 }

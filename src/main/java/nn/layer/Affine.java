@@ -18,16 +18,17 @@ public class Affine implements Layer{
     }
 
     public Matrix forward(Matrix matX) {
-        this.matX = matX;
-        return Matrix.add(Matrix.dot(matX, matW), Matrix.extend(matB, matX.row));
+        this.matX = matX.copy();
+        Matrix matOut = Matrix.add(Matrix.dot(matX, matW), Matrix.extend(matB, matX.row));
+        return matOut;
     }
 
     public Matrix backward(Matrix error, double learningRate) {
         Matrix dX = Matrix.dot(error, Matrix.transpose(matW));
         dW = Matrix.dot(Matrix.transpose(matX), error);
         dB = Matrix.sum(error);
-        matW = Matrix.add(matW, Matrix.dotH(dW, learningRate));
-        matB = Matrix.add(matB, Matrix.dotH(dB, learningRate));
+        matW = Matrix.subtract(matW.copy(), Matrix.dotH(dW, learningRate));
+        matB = Matrix.subtract(matB.copy(), Matrix.dotH(dB, learningRate));
         return dX;
     }
 

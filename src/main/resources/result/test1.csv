@@ -1,0 +1,4 @@
+nn.layer.Affine,src/main/resources/result/test1Affine_0,
+nn.layer.Sigmoid,,
+nn.layer.Affine,src/main/resources/result/test1Affine_1,
+nn.layer.SoftmaxWithLoss,,

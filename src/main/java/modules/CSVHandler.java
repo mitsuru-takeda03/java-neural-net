@@ -51,9 +51,11 @@ public class CSVHandler {
     public static ArrayList<ArrayList<Double>> toDouble(ArrayList<ArrayList<String>> tableString){
         ArrayList<ArrayList<Double>> tableDouble = new ArrayList<ArrayList<Double>>();
         for(int i = 0; i < tableString.size(); i++){
+            ArrayList<Double> lineDouble = new ArrayList<>();
             for(int j = 0; j < tableString.get(0).size(); j++){
-                tableDouble.get(i).set(j, Double.parseDouble(tableString.get(i).get(j)));
+                lineDouble.add(Double.parseDouble(tableString.get(i).get(j)));
             }
+            tableDouble.add(lineDouble);
         }
         return tableDouble;
     }
@@ -61,9 +63,11 @@ public class CSVHandler {
     public static ArrayList<ArrayList<String>> toString(ArrayList<ArrayList<Double>> tableDouble){
         ArrayList<ArrayList<String>> tableString = new ArrayList<ArrayList<String>>();
         for(int i = 0; i < tableDouble.size(); i++){
+            ArrayList<String> lineString = new ArrayList<>();
             for(int j = 0; j < tableDouble.get(0).size(); j++){
-                tableString.get(i).set(j, String.valueOf(tableDouble.get(i).get(j)));
+                lineString.add(String.valueOf(tableDouble.get(i).get(j)));
             }
+            tableString.add(lineString);
         }
         return tableString;
     }

@@ -1,5 +1,6 @@
 package nn.layer;
 
+import java.awt.image.AreaAveragingScaleFilter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +8,7 @@ public class Matrix {
     private final double[][] value;
     public final int row;
     public final int col;
+    private final String enter = System.lineSeparator();
 
     private Matrix() {
         value = new double[1][1];
@@ -14,13 +16,13 @@ public class Matrix {
         col = 1;
     };
 
-    Matrix(int row, int col) {
+    public Matrix(int row, int col) {
         this.row = row;
         this.col = col;
         value = new double[row][col];
     };
 
-    Matrix(int row, int col, double initValue){
+    public Matrix(int row, int col, double initValue){
         this.row = row;
         this.col = col;
         value = new double[row][col];
@@ -31,7 +33,7 @@ public class Matrix {
         }
     }
 
-    Matrix(List<List<Double>> value) {
+    public Matrix(ArrayList<ArrayList<Double>> value) {
         this.row = value.size();
         this.col = value.get(0).size();
         this.value = new double[this.row][this.col];
@@ -42,25 +44,41 @@ public class Matrix {
         }
     };
 
-    Matrix(double[][] value){
+    public Matrix(double[][] value){
         row = value.length;
         col = value[0].length;
         this.value = value;
     };
 
+    public Matrix copy(){
+        Matrix matrixCopy = new Matrix(this.row, this.col);
+        for(int row = 0; row < this.row; row++){
+            for(int col = 0; col < this.col; col++){
+                matrixCopy.value[row][col] = this.value[row][col];
+            }
+        }
+        return matrixCopy;
+    }
+
     public Matrix sliceRow(List<Integer> index){
         Matrix sliceMat = new Matrix(index.size(), value[0].length);
+        int row = 0;
         for(int id : index){
             for(int col = 0; col < value[0].length; col++)
-                sliceMat.value[id][col] = value[id][col];
+                sliceMat.value[row][col] = value[id][col];
+            row++;
         }
         return sliceMat;
     }
 
     public ArrayList<ArrayList<Double>> toList(){
         ArrayList<ArrayList<Double>> listMat = new ArrayList<ArrayList<Double>>();
-        for(int i = 0; i < row; i++) {
-            listMat.add(new ArrayList(List.of(value[row])));
+        for(int row = 0; row < this.row; row++) {
+            ArrayList<Double> listLine = new ArrayList<>();
+            for(int col = 0; col < this.col; col++){
+                listLine.add(value[row][col]);
+            }
+            listMat.add(listLine);
         }
         return listMat;
     }
@@ -74,6 +92,7 @@ public class Matrix {
     public static Matrix add(Matrix matA, Matrix matB){
         if (matA.row != matB.row || matA.col != matB.col){
             // なんかexception投げたい
+            System.out.println("invalid input in add method");
             return new Matrix();
         }
         double[][] result = new double[matA.row][matA.col];
@@ -102,11 +121,12 @@ public class Matrix {
      * @return
      */
     public static Matrix dot(Matrix matA, Matrix matB){
-        if (matA.row != matB.col || matA.col != matB.row){
+        if (matA.col != matB.row){
             // なんかexception投げたい
+            System.out.println("invalid input in dot method");
             return new Matrix();
         }
-        Matrix result = new Matrix(new double[matA.row][matB.col]);
+        Matrix result = new Matrix(matA.row, matB.col);
         for(int row = 0; row < result.row; row++){
             for(int col = 0; col < result.col; col++){
                 double product = 0;
@@ -127,6 +147,7 @@ public class Matrix {
     public static Matrix dotH(Matrix matA, Matrix matB){
         if (matA.row != matB.row || matA.col != matB.col){
             // なんかexception投げたい
+            System.out.println("invalid input in dotH method");
             return new Matrix();
         }
         double[][] result = new double[matA.row][matA.col];
@@ -142,9 +163,10 @@ public class Matrix {
      * 要素毎の除算
      * @return
      */
-    public static Matrix devide(Matrix matA, Matrix matB){
-        if (matA.row != matB.col || matA.col != matB.row){
+    public static Matrix divide(Matrix matA, Matrix matB){
+        if (matA.row != matB.row || matA.col != matB.col){
             // なんかexception投げたい
+            System.out.println("invalid input in divide method");
             return new Matrix();
         }
         double[][] result = new double[matA.row][matB.col];
@@ -176,11 +198,11 @@ public class Matrix {
     public static Matrix dotH(double a, Matrix matB) {
         return dotH(matB, a);
     }
-    public static Matrix devide(Matrix matA, double b){
-        return devide(matA, new Matrix(matA.row, matA.col, b));
+    public static Matrix divide(Matrix matA, double b){
+        return divide(matA, new Matrix(matA.row, matA.col, b));
     }
-    public static Matrix devide(double a, Matrix matB){
-        return devide(new Matrix(matB.row, matB.col, a), matB);
+    public static Matrix divide(double a, Matrix matB){
+        return divide(new Matrix(matB.row, matB.col, a), matB);
     }
 
     /**
@@ -289,17 +311,72 @@ public class Matrix {
         return new Matrix(result);
     }
 
+    public static Matrix makeOneHot(Matrix mat, int dimension){
+        Matrix oneHotMat = new Matrix(mat.row, dimension);
+        for(int i = 0; i < mat.row; i++){
+            oneHotMat.value[i][(int)mat.value[i][0]] = 1;
+        }
+        return oneHotMat;
+    }
+
     public static Matrix softMax(Matrix mat, int axis){
         if(axis == 0) {
             Matrix expMat = exp(mat);
             Matrix sumExpMat = sum(expMat, 0);
-            return devide(expMat, extend(sumExpMat, expMat.row));
+            return divide(expMat, extend(sumExpMat, expMat.row));
         }
         else{
             Matrix expMat = exp(mat);
             Matrix sumExpMat = sum(expMat, 1);
-            return devide(expMat, extend(sumExpMat, expMat.col));
+            return divide(expMat, extend(sumExpMat, expMat.col));
         }
+    }
+
+    public static Matrix getMaxArg(Matrix mat, int axis){
+        if(axis == 0){
+            Matrix argMat = new Matrix(1, mat.col);
+            for(int col = 0; col < mat.col; col++){
+                double tempMax = 0;
+                int tempMaxArg = 0;
+                for(int row = 0; row < mat.row; row++){
+                    if(mat.value[row][col] > tempMax){
+                        tempMax = mat.value[row][col];
+                        tempMaxArg = row;
+                    }
+                }
+                argMat.value[0][col] = tempMaxArg;
+            }
+            return argMat;
+        }
+        else{
+            Matrix argMat = new Matrix(mat.row, 1);
+            for(int row = 0; row < mat.row; row++){
+                double tempMax = 0;
+                int tempMaxArg = 0;
+                for(int col = 0; col < mat.col; col++){
+                    if(mat.value[row][col] > tempMax){
+                        tempMax = mat.value[row][col];
+                        tempMaxArg = col;
+                    }
+                }
+                argMat.value[row][0] = tempMaxArg;
+            }
+            return argMat;
+        }
+    }
+
+    public static double checkAccuracy(Matrix matA, Matrix matB){
+        if(matA.row != matB.row || matA.col != matB.col)
+            return 0.;
+        int count = 0;
+        for(int row = 0; row < matA.row; row++){
+            for(int col = 0; col < matA.col; col++){
+                if(matA.value[row][col] == matB.value[row][col]){
+                    count += 1.;
+                }
+            }
+        }
+        return (double)count / (matA.row * matA.col);
     }
 
     public static double crossEntropyError(Matrix matA, Matrix matB){
@@ -307,4 +384,18 @@ public class Matrix {
         return Matrix.sum(Matrix.sum(crossEntropy, 0), 1).value[0][0];
     }
 
+    @Override
+    public String toString(){
+        String string = "---------------------------------------------------";
+        string += enter;
+        for(int row = 0; row < this.row; row++){
+            for(int col = 0; col < this.col; col++){
+                string += value[row][col];
+                string += ", ";
+            }
+            string += enter;
+        }
+        string += "---------------------------------------------------";
+        return string;
+    }
 }
