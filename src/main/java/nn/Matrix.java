@@ -20,6 +20,17 @@ public class Matrix {
         value = new double[row][col];
     };
 
+    Matrix(int row, int col, double initValue){
+        this.row = row;
+        this.col = col;
+        value = new double[row][col];
+        for(int i = 0; i < row; i++){
+            for(int j = 0; j < col; j++){
+                value[i][j] = initValue;
+            }
+        }
+    }
+
     Matrix(List<List<Double>> value) {
         this.row = value.size();
         this.col = value.get(0).size();
@@ -37,6 +48,12 @@ public class Matrix {
         this.value = value;
     };
 
+    /**
+     * 足し算
+     * @param matA
+     * @param matB
+     * @return
+     */
     public static Matrix add(Matrix matA, Matrix matB){
         if (matA.row != matB.row || matA.col != matB.col){
             // なんかexception投げたい
@@ -51,24 +68,22 @@ public class Matrix {
         return new Matrix(result);
     }
 
+    /**
+     * 引き算
+     * @param matA
+     * @param matB
+     * @return
+     */
     public static Matrix subtract(Matrix matA, Matrix matB){
         return add(matA, dot(matB, -1.));
     }
 
-    public static Matrix dot(Matrix matA, double b){
-        double[][] result = new double[matA.row][matA.col];
-        for(int row = 0; row < matA.row; row++){
-            for(int col = 0; col < matA.col; col++){
-                result[row][col] = matA.value[row][col] + b;
-            }
-        }
-        return new Matrix(result);
-    }
-
-    public static Matrix dot(double a, Matrix matB){
-        return dot(matB, a);
-    }
-
+    /**
+     * 行列積
+     * @param matA
+     * @param matB
+     * @return
+     */
     public static Matrix dot(Matrix matA, Matrix matB){
         if (matA.row != matB.col || matA.col != matB.row){
             // なんかexception投げたい
@@ -86,6 +101,76 @@ public class Matrix {
         return result;
     }
 
+    /**
+     * hadamard積
+     * @param matA
+     * @param matB
+     * @return
+     */
+    public static Matrix dotH(Matrix matA, Matrix matB){
+        if (matA.row != matB.row || matA.col != matB.col){
+            // なんかexception投げたい
+            return new Matrix();
+        }
+        double[][] result = new double[matA.row][matA.col];
+        for(int row = 0; row < matA.row; row++){
+            for(int col = 0; col < matA.col; col++){
+                result[row][col] = matA.value[row][col] * matB.value[row][col];
+            }
+        }
+        return new Matrix(result);
+    }
+
+    /**
+     * 要素毎の除算
+     * @return
+     */
+    public static Matrix devide(Matrix matA, Matrix matB){
+        if (matA.row != matB.col || matA.col != matB.row){
+            // なんかexception投げたい
+            return new Matrix();
+        }
+        double[][] result = new double[matA.row][matB.col];
+        for(int row = 0; row < matA.row; row++){
+            for(int col = 0; col < matB.col; col++){
+                result[row][col] = matA.value[row][col] / matB.value[row][col];
+            }
+        }
+        return new Matrix(result);
+    }
+
+
+    // double用のキャスト機能
+    public static Matrix add(Matrix matA, double b){
+        return add(matA, new Matrix(matA.row, matA.col, b));
+    }
+    public static Matrix add(double a, Matrix matB){
+        return add(matB, a);
+    }
+    public static Matrix subtract(Matrix matA, double b){
+        return subtract(matA, new Matrix(matA.row, matA.col, b));
+    }
+    public static Matrix subtract(double a, Matrix matB){
+        return subtract(matB, a);
+    }
+    public static Matrix dotH(Matrix matA, double b){
+        return dotH(matA, new Matrix(matA.row, matA.col, b));
+    }
+    public static Matrix dotH(double a, Matrix matB) {
+        return dotH(matB, a);
+    }
+    public static Matrix devide(Matrix matA, double b){
+        return devide(matA, new Matrix(matA.row, matA.col, b));
+    }
+    public static Matrix devide(double a, Matrix matB){
+        return devide(new Matrix(matB.row, matB.col, a), matB);
+    }
+
+    /**
+     * 転置
+     * @param mat
+     * @return
+     */
     public static Matrix transpose(Matrix mat){
         double[][] result = new double[mat.col][mat.row];
         for(int row = 0; row < mat.row; row++){
@@ -96,30 +181,82 @@ public class Matrix {
         return new Matrix(result);
     }
 
-    /**
-     *
-     */
     public static Matrix sum(Matrix mat){
-        double[][] result = new double[1][mat.col];
-        for(int row = 0; row < mat.row; row++){
-            for(int col = 0; col < mat.col; col++){
-                result[0][col] += mat.value[row][col];
-            }
-        }
-        return new Matrix(result);
+        return sum(mat, 0);
     }
 
     public static Matrix sum(Matrix mat, int axis){
-        if(axis == 0)
-            return sum(mat);
-        else{
-            double[][] result = new double[mat.row][1];
-            for(int row = 0; row < mat.row; row++){
-                for(int col = 0; col < mat.col; col++){
-                    result[row][0] += mat.value[row][col];
+        if(axis == 0) {
+            double[][] sumOfRow = new double[1][mat.col];
+            for (int row = 0; row < mat.row; row++) {
+                for (int col = 0; col < mat.col; col++) {
+                    sumOfRow[0][col] += mat.value[row][col];
                 }
             }
-            return new Matrix(result);
+            return new Matrix(sumOfRow);
         }
+        else{
+            double[][] sumOfCol = new double[mat.row][1];
+            for(int row = 0; row < mat.row; row++){
+                for(int col = 0; col < mat.col; col++){
+                    sumOfCol[row][0] += mat.value[row][col];
+                }
+            }
+            return new Matrix(sumOfCol);
+        }
+    }
+
+    public static Matrix extend(Matrix mat, int times){
+        if(mat.row == 1){
+            double[][] extendRow = new double[times][mat.col];
+            for(int row = 0; row < times; row++){
+                for(int col = 0; col < mat.col; col++){
+                    extendRow[row][col] = mat.value[0][col];
+                }
+            }
+            return new Matrix(extendRow);
+        }
+        else if(mat.col == 1){
+            double[][] extendCol = new double[mat.row][times];
+            for(int row = 0; row < mat.row; row++){
+                for(int col = 0; col < times; col++){
+                    extendCol[row][col] = mat.value[row][0];
+                }
+            }
+            return new Matrix(extendCol);
+        }
+        else{
+            // TODO 何かexceptionを投げたい
+            System.out.println("Cannot extend Matrix which row != 1 and col != 1");
+            return mat;
+        }
+    }
+
+    /**
+     * 要素毎に指数乗する
+     * @param mat
+     * @return
+     */
+    public static Matrix exp(Matrix mat){
+        double[][] expMat = new double[mat.row][mat.col];
+        for(int row = 0; row < mat.row; row++){
+            for(int col = 0; col < mat.col; col++){
+                expMat[row][col] = Math.exp(mat.value[row][col]);
+            }
+        }
+        return new Matrix(expMat);
+    }
+
+    /**
+     *
+     */
+    public static Matrix isOver(Matrix mat, double threshold){
+        double[][] result = new double[mat.row][mat.col];
+        for(int row = 0; row < mat.row; row++){
+            for(int col = 0; col < mat.col; col++){
+                result[row][col] = mat.value[row][col] > threshold ? 1 : 0;
+            }
+        }
+        return new Matrix(result);
     }
 }

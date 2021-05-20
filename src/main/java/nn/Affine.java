@@ -1,31 +1,33 @@
 package nn;
 
+import java.rmi.MarshalException;
+
 public class Affine implements Layer{
-    private Matrix W;
-    private Matrix b;
-    private Tensor X;
-    private Tensor dW;
-    private Tensor db;
+    private Matrix matW;
+    private Matrix matB;
+    private Matrix matX;
+    private Matrix dW;
+    private Matrix db;
 
     Affine(int xDim, int outDim){
-        W = new Matrix(xDim, outDim);
-        b = new Matrix(1, outDim);
+        matW = new Matrix(xDim, outDim);
+        matB = new Matrix(1, outDim);
     }
 
-    Affine(Matrix w, Matrix b){
-        this.W = w;
-        this.b = b;
+    Affine(Matrix w, Matrix matB){
+        this.matW = w;
+        this.matB = matB;
     }
 
-    public Tensor forward(Tensor X) {
-        this.X = X;
-        return Tensor.add(Tensor.dot(X, W), b);
+    public Matrix forward(Matrix matX) {
+        this.matX = matX;
+        return Matrix.add(Matrix.dot(matX, matW), Matrix.extend(matB, matX.row));
     }
 
-    public Tensor backward(Tensor error) {
-        Tensor dX = Tensor.dot(error, Matrix.transpose(W));
-        dW = Tensor.dot(Tensor.transpose(X), error);
-        db = Tensor.sum(error);
+    public Matrix backward(Matrix error) {
+        Matrix dX = Matrix.dot(error, Matrix.transpose(matW));
+        dW = Matrix.dot(Matrix.transpose(matX), error);
+        db = Matrix.sum(error);
         return dX;
     }
 }
