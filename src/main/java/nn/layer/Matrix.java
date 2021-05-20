@@ -1,4 +1,4 @@
-package nn;
+package nn.layer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +47,23 @@ public class Matrix {
         col = value[0].length;
         this.value = value;
     };
+
+    public Matrix sliceRow(List<Integer> index){
+        Matrix sliceMat = new Matrix(index.size(), value[0].length);
+        for(int id : index){
+            for(int col = 0; col < value[0].length; col++)
+                sliceMat.value[id][col] = value[id][col];
+        }
+        return sliceMat;
+    }
+
+    public ArrayList<ArrayList<Double>> toList(){
+        ArrayList<ArrayList<Double>> listMat = new ArrayList<ArrayList<Double>>();
+        for(int i = 0; i < row; i++) {
+            listMat.add(new ArrayList(List.of(value[row])));
+        }
+        return listMat;
+    }
 
     /**
      * 足し算
